@@ -1,0 +1,175 @@
+name: returnguard
+
+x-app: &app
+  build: .
+  image: returnguard:latest
+  environment:
+    KAFKA_BOOTSTRAP: kafka:9092
+    REDIS_URL: redis://redis:6379/0
+    DATABASE_URL: postgresql+psycopg://rg:rg@postgres:5432/returnguard
+    CLICKHOUSE_URL: clickhouse://rg:rg@clickhouse:8123/default
+    SCORING_STRATEGY: catboost
+    MODEL_PATH: /app/models/catboost_returns.cbm
+    BLOCK_THRESHOLD: "0.9"
+    REVIEW_THRESHOLD: "0.6"
+    API_TOKEN: dev-token
+    METRICS_PORT: "9100"
+    API_URL: http://investigation-api:8000
+    INGEST_URL: http://order-ingest:8001
+    DATAGEN_CUSTOMERS: "1500"
+  depends_on:
+    kafka-init: { condition: service_completed_successfully }
+    redis: { condition: service_healthy }
+    postgres: { condition: service_healthy }
+    clickhouse: { condition: service_healthy }
+  restart: unless-stopped
+
+services:
+  kafka:
+    image: apache/kafka:3.8.0
+    hostname: kafka
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_LOG_RETENTION_HOURS: 168
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 15s
+      retries: 20
+      start_period: 20s
+
+  kafka-init:
+    image: apache/kafka:3.8.0
+    depends_on:
+      kafka: { condition: service_healthy }
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        for t in orders.events:6 returns.to_score:6 returns.scored:6 fraud.alerts:3 orders.events.dlq:1 returns.to_score.dlq:1; do
+          /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic $${t%%:*} --partitions $${t##*:} --replication-factor 1
+        done
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --describe
+    restart: "no"
+
+  kafka-exporter:                # метрики Kafka для Grafana: lag consumer groups, offset'ы топиков
+    image: danielqsj/kafka-exporter:v1.8.0
+    command: ["--kafka.server=kafka:9092"]
+    depends_on:
+      kafka-init: { condition: service_completed_successfully }
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: 5s, retries: 10 }
+
+  postgres:
+    image: postgres:16-alpine
+    environment: { POSTGRES_USER: rg, POSTGRES_PASSWORD: rg, POSTGRES_DB: returnguard }
+    volumes: ["./sql/postgres.sql:/docker-entrypoint-initdb.d/01.sql:ro"]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U rg -d returnguard"], interval: 5s, retries: 10 }
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.3
+    environment: { CLICKHOUSE_USER: rg, CLICKHOUSE_PASSWORD: rg, CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1" }
+    volumes: ["./sql/clickhouse.sql:/docker-entrypoint-initdb.d/01.sql:ro"]
+    ports: ["8123:8123"]
+    ulimits: { nofile: { soft: 262144, hard: 262144 } }
+    healthcheck: { test: ["CMD", "wget", "-qO-", "http://localhost:8123/ping"], interval: 5s, retries: 30 }
+
+  order-ingest:
+    <<: *app
+    command: ["sh", "-c", "rm -rf /tmp/prom && mkdir -p /tmp/prom && PROMETHEUS_MULTIPROC_DIR=/tmp/prom exec uvicorn services.order_ingest.app:app --host 0.0.0.0 --port 8001 --workers 2"]
+    ports: ["8001:8001"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health', timeout=5)"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 30s
+
+  feature-service:
+    <<: *app
+    command: ["python", "-m", "services.feature_service.service"]
+    deploy: { replicas: 2 }      # 2 consumer'а в группе feature-builder
+
+  scoring-service:
+    <<: *app
+    command: ["python", "-m", "services.scoring_service.service"]
+    deploy: { replicas: 2 }      # 2 consumer'а в группе return-scorer
+
+  investigation-api:
+    <<: *app
+    command: ["sh", "-c", "rm -rf /tmp/prom && mkdir -p /tmp/prom && PROMETHEUS_MULTIPROC_DIR=/tmp/prom exec uvicorn services.investigation_api.app:app --host 0.0.0.0 --port 8000 --workers 4"]
+    ports: ["8000:8000"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=5)"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 30s
+
+  replay:                         # поток синтетических событий через Kafka: docker compose --profile demo run --rm replay
+    <<: *app
+    profiles: ["demo"]
+    restart: "no"
+    command: ["bash", "-c", "python -m returnguard.datagen && python -m services.order_ingest.app replay data/events.jsonl"]
+
+  e2e:                           # e2e-тесты против живых контейнеров: docker compose --profile e2e run --rm e2e
+    <<: *app
+    profiles: ["e2e"]
+    restart: "no"
+    command: ["sh", "-c", "E2E_LIVE=1 exec python -m pytest -v -rs -p no:cacheprovider tests/e2e"]
+    depends_on:
+      investigation-api: { condition: service_healthy }
+      order-ingest: { condition: service_healthy }
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-remote-write-receiver      # приём метрик k6
+      - --storage.tsdb.retention.time=3d
+    volumes: ["./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro"]
+    ports: ["9090:9090"]
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/overview.json
+      GF_INSTALL_PLUGINS: grafana-clickhouse-datasource
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports: ["3000:3000"]
+    depends_on: [prometheus]
+
+  k6:                            # нагрузочный тест: docker compose --profile load run --rm k6
+    image: grafana/k6:0.54.0
+    profiles: ["load"]
+    environment:
+      K6_PROMETHEUS_RW_SERVER_URL: http://prometheus:9090/api/v1/write
+      K6_PROMETHEUS_RW_TREND_STATS: "p(50),p(95),p(99),avg,max"
+      K6_PROMETHEUS_RW_PUSH_INTERVAL: 5s
+      API_URL: http://investigation-api:8000
+      INGEST_URL: http://order-ingest:8001
+    volumes:
+      - ./loadtest:/scripts:ro
+      - ./evidence:/evidence
+    user: "0"
+    command: ["run", "-o", "experimental-prometheus-rw", "--summary-export=/evidence/k6_summary.json", "/scripts/load.js"]
+    depends_on: [prometheus]

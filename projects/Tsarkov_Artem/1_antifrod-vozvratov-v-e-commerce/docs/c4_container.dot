@@ -1,0 +1,23 @@
+digraph G {
+graph [rankdir=LR, fontname="DejaVu Sans", fontsize=11, bgcolor=white, pad=0.3, nodesep=0.45, ranksep=0.7, labelloc=t];
+node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10, color="#2b4a7a", fillcolor="#dce7f7", margin="0.15,0.08"];
+edge [fontname="DejaVu Sans", fontsize=8, color="#555555"];
+label="C4 Level 2 — Containers: ReturnGuard";
+oms [fillcolor="#e8e8e8", color="#888888", label="OMS"];
+car [fillcolor="#e8e8e8", color="#888888", label="Carriers"];
+an [shape=box, style="rounded,filled", fillcolor="#08427b", fontcolor=white, label="Аналитик"];
+ing [fillcolor="#438dd5", fontcolor=white, label="order-ingest\n[FastAPI]"];
+t1 [shape=cds, fillcolor="#fde2d4", color="#c0582a", label="orders.events\n(6 partitions,\nkey=customer_id)"];
+fs [fillcolor="#438dd5", fontcolor=white, label="feature-service\n[Python, group\nfeature-builder]"];
+redis [shape=cylinder, fillcolor="#f5e6c8", color="#a07a2a", label="Redis\nonline features"];
+ch [shape=cylinder, fillcolor="#f5e6c8", color="#a07a2a", label="ClickHouse\norder_events,\nreturn_scores"];
+t2 [shape=cds, fillcolor="#fde2d4", color="#c0582a", label="returns.to_score"];
+sc [fillcolor="#438dd5", fontcolor=white, label="scoring-service\n[CatBoost + CoR,\ngroup return-scorer]"];
+t3 [shape=cds, fillcolor="#fde2d4", color="#c0582a", label="returns.scored"];
+t4 [shape=cds, fillcolor="#fde2d4", color="#c0582a", label="fraud.alerts"];
+pg [shape=cylinder, fillcolor="#f5e6c8", color="#a07a2a", label="PostgreSQL\nfraud_cases"];
+api [fillcolor="#438dd5", fontcolor=white, label="investigation-api\n[FastAPI]"];
+dlq [shape=cds, fillcolor="#fde2d4", color="#c0582a", label="*.dlq"];
+oms -> ing; car -> ing [label="Adapter"]; ing -> t1; t1 -> fs; fs -> redis; fs -> ch; fs -> t2; t2 -> sc; sc -> t3; sc -> t4; sc -> pg [label="Observer:\nCaseOpener"]; sc -> ch; fs -> dlq [style=dashed]; sc -> dlq [style=dashed];
+an -> api; api -> pg; api -> redis; api -> ch;
+}

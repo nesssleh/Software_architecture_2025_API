@@ -1,0 +1,142 @@
+{
+ "dataset": {
+  "events": 202350,
+  "customers": 6000,
+  "returns": 20777,
+  "fraud_share": 0.13259854646965394,
+  "train": 13244,
+  "val": 2338,
+  "test": 5195,
+  "split_ts": "2025-10-07T18:21:05.474693+00:00",
+  "archetypes": {
+   "normal": 4898,
+   "heavy_legit": 594,
+   "reseller": 159,
+   "damage_claim": 133,
+   "wardrobing": 125,
+   "inr_claim": 91
+  }
+ },
+ "metrics": {
+  "rules (baseline)": {
+   "roc_auc": 0.7810832268506688,
+   "pr_auc": 0.30581348978412,
+   "precision": 0.7333333333333333,
+   "recall": 0.034108527131782945,
+   "f1": 0.06518518518518518,
+   "recall_at_fpr1": 0.08883967023501907,
+   "precision_at_top5pct": 0.28957528957528955
+  },
+  "logreg (baseline)": {
+   "roc_auc": 0.9844511457534713,
+   "pr_auc": 0.8694610074332283,
+   "precision": 0.7438118811881188,
+   "recall": 0.931782945736434,
+   "f1": 0.8272539573296628,
+   "recall_at_fpr1": 0.5627906976744186,
+   "precision_at_top5pct": 0.8957528957528957
+  },
+  "catboost": {
+   "roc_auc": 0.9932011244569384,
+   "pr_auc": 0.9461677468702548,
+   "precision": 0.9222614840989399,
+   "recall": 0.8093023255813954,
+   "f1": 0.8620974401321222,
+   "recall_at_fpr1": 0.8263565891472868,
+   "precision_at_top5pct": 0.9613899613899614
+  }
+ },
+ "threshold": 0.8013397843246657,
+ "best_iteration": 798,
+ "feature_importance": [
+  [
+   "ret_days_since_delivery",
+   23.09
+  ],
+  [
+   "account_age_days",
+   18.22
+  ],
+  [
+   "ret_reason",
+   15.23
+  ],
+  [
+   "avg_days_to_return",
+   7.04
+  ],
+  [
+   "ret_category",
+   7.02
+  ],
+  [
+   "share_high_value_returned",
+   4.17
+  ],
+  [
+   "ret_amount",
+   3.75
+  ],
+  [
+   "return_value_share",
+   3.74
+  ],
+  [
+   "n_orders",
+   3.72
+  ],
+  [
+   "share_damaged",
+   1.78
+  ],
+  [
+   "ret_refund_mismatch",
+   1.74
+  ],
+  [
+   "n_payment_methods",
+   1.69
+  ],
+  [
+   "return_rate",
+   1.61
+  ],
+  [
+   "ret_n_items",
+   1.52
+  ],
+  [
+   "refund_method_mismatch_rate",
+   1.11
+  ],
+  [
+   "share_not_described",
+   0.95
+  ],
+  [
+   "n_returns_prev",
+   0.87
+  ],
+  [
+   "n_addresses",
+   0.8
+  ],
+  [
+   "share_fast_returns",
+   0.61
+  ],
+  [
+   "n_not_received_claims",
+   0.53
+  ],
+  [
+   "ret_is_high_value",
+   0.47
+  ],
+  [
+   "returns_30d",
+   0.33
+  ]
+ ],
+ "seconds": 26.6
+}

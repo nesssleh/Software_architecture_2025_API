@@ -1,0 +1,47 @@
+{
+ "events": 67487,
+ "returns_scored": 6789,
+ "feature_msgs": 67487,
+ "throughput_feature_eps": 1575,
+ "throughput_scoring_rps": 299,
+ "ingest_seconds": 1.07,
+ "scoring_latency_ms": {
+  "p50": 2.57,
+  "p95": 7.92,
+  "p99": 10.51
+ },
+ "decisions": {
+  "approve": 5917,
+  "review": 282,
+  "block": 590
+ },
+ "decided_by": {
+  "model": 6616,
+  "small_amount": 142,
+  "hard_rule": 31
+ },
+ "topics": {
+  "orders.events": 67487,
+  "returns.to_score": 6789,
+  "returns.scored": 6789,
+  "fraud.alerts": 590,
+  "orders.events.dlq": 0,
+  "returns.to_score.dlq": 0
+ },
+ "consumer_lag": {
+  "feature-builder": 0,
+  "return-scorer": 0
+ },
+ "online_eval_new_population": {
+  "returns": 6789,
+  "roc_auc": 0.9774,
+  "pr_auc": 0.8869,
+  "flag_precision": 0.7901,
+  "flag_recall": 0.871,
+  "block_precision": 0.9,
+  "fraud_amount_caught_share": 0.9293
+ },
+ "cases": {
+  "open": 872
+ }
+}

@@ -1,0 +1,28 @@
+{
+ "version": "cb-20261019",
+ "threshold_f1": 0.8013397843246657,
+ "features": [
+  "account_age_days",
+  "n_orders",
+  "n_returns_prev",
+  "return_rate",
+  "return_value_share",
+  "returns_30d",
+  "avg_days_to_return",
+  "share_fast_returns",
+  "share_damaged",
+  "share_not_described",
+  "n_not_received_claims",
+  "n_addresses",
+  "n_payment_methods",
+  "share_high_value_returned",
+  "refund_method_mismatch_rate",
+  "ret_amount",
+  "ret_n_items",
+  "ret_days_since_delivery",
+  "ret_is_high_value",
+  "ret_refund_mismatch",
+  "ret_reason",
+  "ret_category"
+ ]
+}
