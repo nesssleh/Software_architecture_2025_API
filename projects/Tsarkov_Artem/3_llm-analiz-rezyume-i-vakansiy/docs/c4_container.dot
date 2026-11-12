@@ -1,0 +1,16 @@
+digraph G {
+graph [rankdir=LR, fontname="DejaVu Sans", fontsize=11, bgcolor=white, pad=0.3, nodesep=0.45, ranksep=0.7, labelloc=t];
+node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10, color="#2b4a7a", fillcolor="#dce7f7", margin="0.15,0.08"];
+edge [fontname="DejaVu Sans", fontsize=8, color="#555555"];
+label="C4 Level 2 — Containers: SkillMatch";
+u [shape=box, style="rounded,filled", fillcolor="#08427b", fontcolor=white, label="Клиент API"];
+api [fillcolor="#438dd5", fontcolor=white, label="skillmatch-api\n[FastAPI, Facade]"];
+t1 [shape=cds, fillcolor="#fde2d4", color="#c0582a", label="documents.ingested\n(key=doc_id)"];
+w [fillcolor="#438dd5", fontcolor=white, label="extractor-worker x2\n[group skill-extractor]"];
+t2 [shape=cds, fillcolor="#fde2d4", color="#c0582a", label="documents.processed"];
+pg [shape=cylinder, fillcolor="#f5e6c8", color="#a07a2a", label="PostgreSQL + pgvector\ndocuments (HNSW),\ndocument_skills"];
+ollama [fillcolor="#e8e8e8", color="#888888", label="Ollama\nqwen2.5:3b-instruct"];
+spacy [fillcolor="#e8e8e8", color="#888888", label="Embeddings\nru_core_news_md /\nmultilingual-e5"];
+dlq [shape=cds, fillcolor="#fde2d4", color="#c0582a", label="documents.ingested.dlq"];
+u -> api; api -> t1 [label="async"]; api -> pg [label="sync / match"]; t1 -> w; w -> pg; w -> t2; w -> ollama [style=dashed]; api -> ollama [label="explain", style=dashed]; w -> spacy; api -> spacy; w -> dlq [style=dashed];
+}

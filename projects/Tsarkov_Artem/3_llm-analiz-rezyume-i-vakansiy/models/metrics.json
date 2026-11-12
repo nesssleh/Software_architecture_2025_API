@@ -1,0 +1,174 @@
+{
+ "dataset": {
+  "resumes": 600,
+  "vacancies": 60,
+  "skills_in_taxonomy": 76,
+  "avg_skills_resume": 7.19
+ },
+ "extraction": {
+  "gazetteer": {
+   "precision": 1.0,
+   "recall": 0.9267,
+   "f1": 0.962,
+   "ms_per_doc": 0.61
+  },
+  "hybrid (gazetteer+semantic)": {
+   "precision": 0.9704,
+   "recall": 0.942,
+   "f1": 0.956,
+   "ms_per_doc": 6.48
+  }
+ },
+ "ingest_ms_per_doc": 23.26,
+ "requirements_split": {
+  "must_have": {
+   "precision": 1.0,
+   "recall": 0.9567,
+   "f1": 0.9779
+  },
+  "nice_to_have": {
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0
+  }
+ },
+ "ranking": {
+  "tfidf_cosine (baseline)": {
+   "roc_auc": 0.9262,
+   "ndcg@10": 0.5205,
+   "p@10": 0.5
+  },
+  "embedding_cosine (spaCy)": {
+   "roc_auc": 0.545,
+   "ndcg@10": 0.1027,
+   "p@10": 0.1
+  },
+  "skill_matcher: exact only (ablation)": {
+   "roc_auc": 0.9972,
+   "ndcg@10": 0.9997,
+   "p@10": 1.0
+  },
+  "skill_matcher: exact+related+semantic (default)": {
+   "roc_auc": 0.9921,
+   "ndcg@10": 0.9609,
+   "p@10": 0.95
+  },
+  "skill_matcher on gold skills (upper bound)": {
+   "roc_auc": 0.9951,
+   "ndcg@10": 0.9892,
+   "p@10": 0.9833
+  }
+ },
+ "ranking_positive_share": 0.0478,
+ "match_ms_per_pair": 0.126,
+ "candidates_recall@50": 0.9658,
+ "gap_detection": {
+  "precision": 0.9893,
+  "recall": 0.904,
+  "f1": 0.9447
+ },
+ "example": {
+  "vacancy": "Вакансия: Python Backend Developer. Опыт работы с питон от 2 лет. Требуется опыт с FastAPI. Ожидаем уверенное владение постгрес. Обязательно знание контейнеризация. Обязательно знание rest. Обязательно знание gitlab. Плюсом будет опыт с Redis. Плюсом будет опыт с Apache Kafka. Плюсом будет опыт с Django. Будет плюсом: Microservices. ДМС и обучение за счёт компании.",
+  "resume": "Резюме. Желаемая должность: Python Backend Developer. Использовал Django в продакшене. Есть коммерческий опыт с Linux. Стек: Docker. Знаком с микросервисная архитектура независимые сервисы распил монолита отдельные базы. Знаком с REST API. Писал сервисы с применением github actions. Писал сервисы с применением Redis. Стек: PostgreSQL. Знаком с kafka. Знаком с гит. ДМС и обучение за счёт компании. Ответственный, быстро обучаюсь.",
+  "result": {
+   "resume_id": "res-0230",
+   "vacancy_id": "vac-000",
+   "score": 0.7578,
+   "must_coverage": 0.7667,
+   "nice_coverage": 1.0,
+   "doc_similarity": 0.2581,
+   "missing_must": [
+    "Python"
+   ],
+   "matches": [
+    {
+     "requirement": "Docker",
+     "matched_by": "Docker",
+     "kind": "exact",
+     "score": 1.0
+    },
+    {
+     "requirement": "FastAPI",
+     "matched_by": "Django",
+     "kind": "related",
+     "score": 0.6
+    },
+    {
+     "requirement": "Git",
+     "matched_by": "Git",
+     "kind": "exact",
+     "score": 1.0
+    },
+    {
+     "requirement": "PostgreSQL",
+     "matched_by": "PostgreSQL",
+     "kind": "exact",
+     "score": 1.0
+    },
+    {
+     "requirement": "Python",
+     "matched_by": null,
+     "kind": "missing",
+     "score": 0.0
+    },
+    {
+     "requirement": "REST API",
+     "matched_by": "REST API",
+     "kind": "exact",
+     "score": 1.0
+    },
+    {
+     "requirement": "Apache Kafka",
+     "matched_by": "Apache Kafka",
+     "kind": "exact",
+     "score": 1.0
+    },
+    {
+     "requirement": "Django",
+     "matched_by": "Django",
+     "kind": "exact",
+     "score": 1.0
+    },
+    {
+     "requirement": "Microservices",
+     "matched_by": "Microservices",
+     "kind": "exact",
+     "score": 1.0
+    },
+    {
+     "requirement": "Redis",
+     "matched_by": "Redis",
+     "kind": "exact",
+     "score": 1.0
+    }
+   ],
+   "explanation": {
+    "verdict": "частично подходит",
+    "summary": "Кандидат частично подходит на позицию «Python Backend Developer» (оценка 76%, покрытие обязательных требований 77%). Совпадают: Docker, Git, PostgreSQL, REST API, Apache Kafka, Django, Microservices, Redis. Частично закрыто смежным опытом: FastAPI (есть Django). Не хватает обязательных компетенций: Python.",
+    "recommendations": [
+     "Освоить Python: решить несколько практических задач и сделать pet-проект."
+    ],
+    "facts": {
+     "exact": [
+      "Docker",
+      "Git",
+      "PostgreSQL",
+      "REST API",
+      "Apache Kafka",
+      "Django",
+      "Microservices",
+      "Redis"
+     ],
+     "partial": [
+      "FastAPI (есть Django)"
+     ],
+     "missing_must": [
+      "Python"
+     ],
+     "missing_nice": []
+    },
+    "explainer": "template"
+   }
+  }
+ }
+}
