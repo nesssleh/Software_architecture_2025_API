@@ -1,0 +1,151 @@
+name: geoseg
+
+x-app: &app
+  build: .
+  image: geoseg:latest
+  environment:
+    KAFKA_BOOTSTRAP: kafka:9092
+    MINIO_ENDPOINT: s3:9000
+    MINIO_ACCESS_KEY: minio
+    MINIO_SECRET_KEY: minio123
+    MINIO_BUCKET: rasters
+    POSTGIS_DSN: postgresql://geo:geo@postgis:5432/geo
+    SEG_MODEL: unet
+    MODEL_PATH: /app/models/unet_landcover.pt
+    METRICS_PORT: "9100"
+    API_URL: http://api:8000
+    OMP_NUM_THREADS: "2"
+  depends_on:
+    kafka-init: { condition: service_completed_successfully }
+    s3: { condition: service_started }
+    postgis: { condition: service_healthy }
+  restart: unless-stopped
+
+services:
+  kafka:
+    image: apache/kafka:3.8.0
+    hostname: kafka
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_LOG_RETENTION_HOURS: 168
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 15s
+      retries: 20
+      start_period: 20s
+
+  kafka-init:
+    image: apache/kafka:3.8.0
+    depends_on:
+      kafka: { condition: service_healthy }
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        for t in raster.ingested:3 tiles.ready:6 tiles.segmented:6 raster.completed:3 raster.ingested.dlq:1 tiles.ready.dlq:1 tiles.segmented.dlq:1; do
+          /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic $${t%%:*} --partitions $${t##*:} --replication-factor 1
+        done
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --describe
+    restart: "no"
+
+  kafka-exporter:                # метрики Kafka для Grafana: lag consumer groups, offset'ы топиков
+    image: danielqsj/kafka-exporter:v1.8.0
+    command: ["--kafka.server=kafka:9092"]
+    depends_on:
+      kafka-init: { condition: service_completed_successfully }
+    restart: unless-stopped
+
+  s3:                            # S3-совместимое объектное хранилище (SeaweedFS; образы MinIO убраны из Docker Hub)
+    image: chrislusf/seaweedfs:3.80
+    command: ["server", "-dir=/data", "-s3", "-s3.port=9000", "-volume.max=0", "-master.volumeSizeLimitMB=1024"]
+    ports: ["9000:9000"]
+    volumes: ["s3data:/data"]
+
+  postgis:
+    image: postgis/postgis:16-3.4-alpine
+    environment: { POSTGRES_USER: geo, POSTGRES_PASSWORD: geo, POSTGRES_DB: geo }
+    volumes: ["./sql/postgis.sql:/docker-entrypoint-initdb.d/10_schema.sql:ro"]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U geo -d geo"], interval: 5s, retries: 20 }
+
+  api:
+    <<: *app
+    command: ["sh", "-c", "rm -rf /tmp/prom && mkdir -p /tmp/prom && PROMETHEUS_MULTIPROC_DIR=/tmp/prom exec uvicorn services.ingest_api.app:app --host 0.0.0.0 --port 8000 --workers 2"]
+    ports: ["8000:8000"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=5)"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 30s
+
+  tiler:
+    <<: *app
+    command: ["python", "-m", "services.run_worker", "tiler"]
+
+  inference-worker:
+    <<: *app
+    command: ["python", "-m", "services.run_worker", "inference"]
+    deploy: { replicas: 2 }      # горизонтальное масштабирование инференса
+
+  geostore:
+    <<: *app
+    command: ["python", "-m", "services.run_worker", "geostore"]
+
+  e2e:                           # e2e-тесты против живых контейнеров: docker compose --profile e2e run --rm e2e
+    <<: *app
+    profiles: ["e2e"]
+    restart: "no"
+    command: ["sh", "-c", "E2E_LIVE=1 exec python -m pytest -v -rs -p no:cacheprovider tests/e2e"]
+    depends_on:
+      api: { condition: service_healthy }
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-remote-write-receiver      # приём метрик k6
+      - --storage.tsdb.retention.time=3d
+    volumes: ["./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro"]
+    ports: ["9090:9090"]
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/overview.json
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports: ["3000:3000"]
+    depends_on: [prometheus]
+
+  k6:                            # нагрузочный тест: docker compose --profile load run --rm k6
+    image: grafana/k6:0.54.0
+    profiles: ["load"]
+    environment:
+      K6_PROMETHEUS_RW_SERVER_URL: http://prometheus:9090/api/v1/write
+      K6_PROMETHEUS_RW_TREND_STATS: "p(50),p(95),p(99),avg,max"
+      K6_PROMETHEUS_RW_PUSH_INTERVAL: 5s
+      API_URL: http://api:8000
+    volumes:
+      - ./loadtest:/scripts:ro
+      - ./evidence:/evidence
+    user: "0"
+    command: ["run", "-o", "experimental-prometheus-rw", "--summary-export=/evidence/k6_summary.json", "/scripts/load.js"]
+    depends_on: [prometheus]
+
+volumes:
+  s3data:

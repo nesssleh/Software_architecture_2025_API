@@ -1,0 +1,11 @@
+digraph G {
+graph [rankdir=LR, fontname="DejaVu Sans", fontsize=11, bgcolor=white, pad=0.3, nodesep=0.45, ranksep=0.7, labelloc=t];
+node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10, color="#2b4a7a", fillcolor="#dce7f7", margin="0.15,0.08"];
+edge [fontname="DejaVu Sans", fontsize=8, color="#555555"];
+label="C4 Level 1 — System Context: GeoSeg";
+gis [shape=box, style="rounded,filled", fillcolor="#08427b", fontcolor=white, label="ГИС-аналитик\n[Person]"];
+src [fillcolor="#e8e8e8", color="#888888", label="Поставщик снимков\n(Sentinel-2, Ресурс-П, БПЛА)"];
+gs [fillcolor="#438dd5", fontcolor=white, label="GeoSeg\n[Software system]\nсегментация land cover"];
+gisapp [fillcolor="#e8e8e8", color="#888888", label="QGIS / веб-карта\n[External]"];
+src -> gs [label="GeoTIFF R,G,B,NIR"]; gis -> gs [label="загрузка, запросы"]; gs -> gisapp [label="GeoJSON, маски"];
+}
