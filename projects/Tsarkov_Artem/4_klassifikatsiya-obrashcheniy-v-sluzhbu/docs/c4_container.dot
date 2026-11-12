@@ -1,0 +1,19 @@
+digraph G {
+graph [rankdir=LR, fontname="DejaVu Sans", fontsize=11, bgcolor=white, pad=0.3, nodesep=0.45, ranksep=0.7, labelloc=t];
+node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10, color="#2b4a7a", fillcolor="#dce7f7", margin="0.15,0.08"];
+edge [fontname="DejaVu Sans", fontsize=8, color="#555555"];
+label="C4 Level 2 — Containers: TicketFlow";
+u [shape=box, style="rounded,filled", fillcolor="#08427b", fontcolor=white, label="Канал / оператор"];
+api [fillcolor="#438dd5", fontcolor=white, label="intake-api\n[FastAPI]"];
+t1 [shape=cds, fillcolor="#fde2d4", color="#c0582a", label="tickets.created\n(key=ticket_id)"];
+cl [fillcolor="#438dd5", fontcolor=white, label="classifier-service x2\n[HF transformer,\ngroup ticket-classifier]"];
+t2 [shape=cds, fillcolor="#fde2d4", color="#c0582a", label="tickets.classified"];
+rt [fillcolor="#438dd5", fontcolor=white, label="routing-service\n[CoR + Command,\ngroup ticket-router]"];
+t3 [shape=cds, fillcolor="#fde2d4", color="#c0582a", label="tickets.routed"];
+t4 [shape=cds, fillcolor="#fde2d4", color="#c0582a", label="incidents.detected"];
+pg [shape=cylinder, fillcolor="#f5e6c8", color="#a07a2a", label="PostgreSQL\ntickets, ticket_audit"];
+redis [shape=cylinder, fillcolor="#f5e6c8", color="#a07a2a", label="Redis\nsliding-window\ncounters"];
+es [shape=cylinder, fillcolor="#f5e6c8", color="#a07a2a", label="Elasticsearch\nindex tickets"];
+kib [fillcolor="#e8e8e8", color="#888888", label="Kibana"];
+u -> api; api -> t1; t1 -> cl; cl -> t2; t2 -> rt; rt -> redis; rt -> pg; rt -> es [label="Observer"]; rt -> t3; rt -> t4; api -> pg; api -> es; es -> kib;
+}

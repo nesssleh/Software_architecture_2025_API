@@ -1,0 +1,152 @@
+{
+ "dataset": {
+  "total": 12000,
+  "train": 7170,
+  "val": 1024,
+  "test": 1483,
+  "test_unseen": 1757,
+  "category_dist": {
+   "billing": 2416,
+   "technical": 2925,
+   "account_access": 1590,
+   "delivery": 1876,
+   "refund": 1528,
+   "feature_request": 944,
+   "security": 721
+  },
+  "priority_dist": {
+   "low": 881,
+   "medium": 6436,
+   "high": 3822,
+   "critical": 861
+  }
+ },
+ "results": {
+  "keywords": {
+   "test": {
+    "category_acc": 0.7902899527983817,
+    "category_macro_f1": 0.759064136452121,
+    "priority_acc": 0.7012811867835469,
+    "priority_macro_f1": 0.6121100533837639,
+    "high_critical_recall": 0.9334389857369255,
+    "routing_acc": 0.7902899527983817,
+    "ms_per_ticket": 0.024
+   },
+   "test_unseen_templates": {
+    "category_acc": 0.8981217985202049,
+    "category_macro_f1": 0.897415442302193,
+    "priority_acc": 0.7228229937393283,
+    "priority_macro_f1": 0.6546376597514337,
+    "high_critical_recall": 0.9108910891089109,
+    "routing_acc": 0.8981217985202049,
+    "ms_per_ticket": 0.015
+   }
+  },
+  "tfidf_logreg": {
+   "test": {
+    "category_acc": 0.9817936614969656,
+    "category_macro_f1": 0.9783470670832345,
+    "priority_acc": 0.8867161159811193,
+    "priority_macro_f1": 0.827771301658075,
+    "high_critical_recall": 0.9270998415213946,
+    "routing_acc": 0.9817936614969656,
+    "ms_per_ticket": 0.131
+   },
+   "test_unseen_templates": {
+    "category_acc": 0.28514513375071143,
+    "category_macro_f1": 0.23164804656373847,
+    "priority_acc": 0.7581104154809334,
+    "priority_macro_f1": 0.5678730714011909,
+    "high_critical_recall": 0.8246110325318247,
+    "routing_acc": 0.28514513375071143,
+    "ms_per_ticket": 0.134
+   }
+  },
+  "hf_transformer": {
+   "test": {
+    "category_acc": 0.99527983816588,
+    "category_macro_f1": 0.9946738481038996,
+    "priority_acc": 0.9143627781523938,
+    "priority_macro_f1": 0.8599171172504181,
+    "high_critical_recall": 0.9556259904912837,
+    "routing_acc": 0.99527983816588,
+    "ms_per_ticket": 0.848
+   },
+   "test_unseen_templates": {
+    "category_acc": 0.3392145702902675,
+    "category_macro_f1": 0.2547366628223589,
+    "priority_acc": 0.7831531018782015,
+    "priority_macro_f1": 0.5722569600526248,
+    "high_critical_recall": 0.8316831683168316,
+    "routing_acc": 0.3392145702902675,
+    "ms_per_ticket": 0.55
+   }
+  },
+  "ensemble": {
+   "test": {
+    "category_acc": 0.9925826028320971,
+    "category_macro_f1": 0.9910254046147281,
+    "priority_acc": 0.9143627781523938,
+    "priority_macro_f1": 0.8599171172504181,
+    "high_critical_recall": 0.9556259904912837,
+    "routing_acc": 0.9925826028320971,
+    "ms_per_ticket": 0.616
+   },
+   "test_unseen_templates": {
+    "category_acc": 0.8417757541263517,
+    "category_macro_f1": 0.8190834392055502,
+    "priority_acc": 0.7831531018782015,
+    "priority_macro_f1": 0.5722569600526248,
+    "high_critical_recall": 0.8316831683168316,
+    "routing_acc": 0.8417757541263517,
+    "ms_per_ticket": 0.544
+   }
+  }
+ },
+ "best_model": "hf_transformer",
+ "production_model": "ensemble",
+ "hf_history": [
+  {
+   "epoch": 1,
+   "loss": 1.6859823117213966,
+   "val_cat_f1": 0.995192950029217,
+   "val_pri_f1": 0.733304189453383
+  },
+  {
+   "epoch": 2,
+   "loss": 0.39843464240563653,
+   "val_cat_f1": 0.9946453010272326,
+   "val_pri_f1": 0.8032087504321552
+  },
+  {
+   "epoch": 3,
+   "loss": 0.342968890097289,
+   "val_cat_f1": 0.994348935646091,
+   "val_pri_f1": 0.8545079830343616
+  },
+  {
+   "epoch": 4,
+   "loss": 0.3073943442277676,
+   "val_cat_f1": 0.9961881674779426,
+   "val_pri_f1": 0.8431404845311179
+  },
+  {
+   "epoch": 5,
+   "loss": 0.27511738814347614,
+   "val_cat_f1": 0.9984688717144125,
+   "val_pri_f1": 0.8450764523802701
+  },
+  {
+   "epoch": 6,
+   "loss": 0.2571958149165179,
+   "val_cat_f1": 0.9979680368536307,
+   "val_pri_f1": 0.8450764523802701
+  }
+ ],
+ "hf_params": 859403,
+ "train_seconds": {
+  "tfidf_logreg": 22.5,
+  "hf_transformer": 696.1
+ },
+ "classification_report_best": "                 precision    recall  f1-score   support\n\n        billing      0.996     0.996     0.996       285\n      technical      0.995     0.995     0.995       379\n account_access      0.993     0.993     0.993       150\n       delivery      1.000     1.000     1.000       247\n         refund      0.990     1.000     0.995       196\nfeature_request      0.992     0.985     0.989       132\n       security      1.000     0.989     0.995        94\n\n       accuracy                          0.995      1483\n      macro avg      0.995     0.994     0.995      1483\n   weighted avg      0.995     0.995     0.995      1483\n"
+}
