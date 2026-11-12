@@ -1,0 +1,259 @@
+{
+ "episodes_per_cell": 300,
+ "results": {
+  "open": {
+   "random": {
+    "policy": "random",
+    "scenario": "open",
+    "episodes": 300,
+    "mean_return": -5.0822899999999995,
+    "std_return": 2.3843088500793406,
+    "success_rate": 0.0033333333333333335,
+    "collision_rate": 0.47333333333333333,
+    "timeout_rate": 0.0,
+    "mean_length": 54.666666666666664,
+    "hit_accuracy": 0.00727069351230425,
+    "outcomes": {
+     "out_of_ammo": 157,
+     "collision": 142,
+     "target_destroyed": 1
+    }
+   },
+   "heuristic": {
+    "policy": "heuristic",
+    "scenario": "open",
+    "episodes": 300,
+    "mean_return": 18.36198,
+    "std_return": 0.6489329648995598,
+    "success_rate": 1.0,
+    "collision_rate": 0.0,
+    "timeout_rate": 0.0,
+    "mean_length": 36.74,
+    "hit_accuracy": 1.0,
+    "outcomes": {
+     "target_destroyed": 300
+    }
+   },
+   "ppo": {
+    "policy": "ppo",
+    "scenario": "open",
+    "episodes": 300,
+    "mean_return": 18.236216666666667,
+    "std_return": 0.6377907674586983,
+    "success_rate": 1.0,
+    "collision_rate": 0.0,
+    "timeout_rate": 0.0,
+    "mean_length": 37.28,
+    "hit_accuracy": 1.0,
+    "outcomes": {
+     "target_destroyed": 300
+    }
+   }
+  },
+  "forest": {
+   "random": {
+    "policy": "random",
+    "scenario": "forest",
+    "episodes": 300,
+    "mean_return": -5.693536666666668,
+    "std_return": 1.4127338373955025,
+    "success_rate": 0.0,
+    "collision_rate": 0.7,
+    "timeout_rate": 0.0,
+    "mean_length": 45.00666666666667,
+    "hit_accuracy": 0.0,
+    "outcomes": {
+     "out_of_ammo": 90,
+     "collision": 210
+    }
+   },
+   "heuristic": {
+    "policy": "heuristic",
+    "scenario": "forest",
+    "episodes": 300,
+    "mean_return": 7.251363333333332,
+    "std_return": 11.096893939506476,
+    "success_rate": 0.49666666666666665,
+    "collision_rate": 0.49666666666666665,
+    "timeout_rate": 0.006666666666666667,
+    "mean_length": 34.32666666666667,
+    "hit_accuracy": 1.0,
+    "outcomes": {
+     "collision": 149,
+     "target_destroyed": 149,
+     "timeout": 2
+    }
+   },
+   "ppo": {
+    "policy": "ppo",
+    "scenario": "forest",
+    "episodes": 300,
+    "mean_return": 17.41486,
+    "std_return": 4.213616817778601,
+    "success_rate": 0.96,
+    "collision_rate": 0.03,
+    "timeout_rate": 0.0033333333333333335,
+    "mean_length": 50.86333333333334,
+    "hit_accuracy": 0.9549828178694157,
+    "outcomes": {
+     "target_destroyed": 288,
+     "collision": 9,
+     "out_of_ammo": 2,
+     "timeout": 1
+    }
+   }
+  },
+  "corridor": {
+   "random": {
+    "policy": "random",
+    "scenario": "corridor",
+    "episodes": 300,
+    "mean_return": -5.6437566666666665,
+    "std_return": 1.5542433906745607,
+    "success_rate": 0.0,
+    "collision_rate": 0.68,
+    "timeout_rate": 0.0,
+    "mean_length": 49.876666666666665,
+    "hit_accuracy": 0.0005611672278338944,
+    "outcomes": {
+     "out_of_ammo": 96,
+     "collision": 204
+    }
+   },
+   "heuristic": {
+    "policy": "heuristic",
+    "scenario": "corridor",
+    "episodes": 300,
+    "mean_return": 5.415743333333333,
+    "std_return": 10.989024177368476,
+    "success_rate": 0.4,
+    "collision_rate": 0.59,
+    "timeout_rate": 0.01,
+    "mean_length": 36.18333333333333,
+    "hit_accuracy": 1.0,
+    "outcomes": {
+     "target_destroyed": 120,
+     "collision": 177,
+     "timeout": 3
+    }
+   },
+   "ppo": {
+    "policy": "ppo",
+    "scenario": "corridor",
+    "episodes": 300,
+    "mean_return": 18.59456666666667,
+    "std_return": 1.3559300887418773,
+    "success_rate": 0.9966666666666667,
+    "collision_rate": 0.0033333333333333335,
+    "timeout_rate": 0.0,
+    "mean_length": 56.193333333333335,
+    "hit_accuracy": 1.0,
+    "outcomes": {
+     "target_destroyed": 299,
+     "collision": 1
+    }
+   }
+  },
+  "mixed": {
+   "random": {
+    "policy": "random",
+    "scenario": "mixed",
+    "episodes": 300,
+    "mean_return": -5.523363333333333,
+    "std_return": 1.830278666757849,
+    "success_rate": 0.0,
+    "collision_rate": 0.6566666666666666,
+    "timeout_rate": 0.0,
+    "mean_length": 48.72666666666667,
+    "hit_accuracy": 0.003502824858757062,
+    "outcomes": {
+     "out_of_ammo": 103,
+     "collision": 197
+    }
+   },
+   "heuristic": {
+    "policy": "heuristic",
+    "scenario": "mixed",
+    "episodes": 300,
+    "mean_return": 9.319563333333335,
+    "std_return": 10.935174660668306,
+    "success_rate": 0.59,
+    "collision_rate": 0.4066666666666667,
+    "timeout_rate": 0.0033333333333333335,
+    "mean_length": 32.75,
+    "hit_accuracy": 1.0,
+    "outcomes": {
+     "target_destroyed": 177,
+     "collision": 122,
+     "timeout": 1
+    }
+   },
+   "ppo": {
+    "policy": "ppo",
+    "scenario": "mixed",
+    "episodes": 300,
+    "mean_return": 17.835306666666664,
+    "std_return": 3.3950835737316134,
+    "success_rate": 0.9766666666666667,
+    "collision_rate": 0.013333333333333334,
+    "timeout_rate": 0.0033333333333333335,
+    "mean_length": 47.10333333333333,
+    "hit_accuracy": 0.9898305084745763,
+    "outcomes": {
+     "target_destroyed": 293,
+     "out_of_ammo": 2,
+     "collision": 4,
+     "timeout": 1
+    }
+   }
+  }
+ },
+ "pipeline": {
+  "telemetry_msgs": 960,
+  "episode_msgs": 120,
+  "consumed": 120,
+  "lag": 0,
+  "db_stats": [
+   {
+    "policy": "ppo",
+    "scenario": "corridor",
+    "episodes": 8,
+    "mean_return": 18.854,
+    "success_rate": 1.0,
+    "mean_steps": 48.2
+   },
+   {
+    "policy": "ppo",
+    "scenario": "forest",
+    "episodes": 27,
+    "mean_return": 17.45,
+    "success_rate": 0.963,
+    "mean_steps": 48.8
+   },
+   {
+    "policy": "ppo",
+    "scenario": "open",
+    "episodes": 5,
+    "mean_return": 18.396,
+    "success_rate": 1.0,
+    "mean_steps": 36.8
+   }
+  ]
+ },
+ "train": {
+  "timesteps": 600000,
+  "train_seconds": 239.3,
+  "best_eval_success": 1.0,
+  "hparams": {
+   "learning_rate": "0.0003",
+   "n_steps": "512",
+   "batch_size": "256",
+   "n_epochs": "10",
+   "gamma": "0.99",
+   "gae_lambda": "0.95",
+   "clip_range": "0.2",
+   "ent_coef": "0.01",
+   "policy_kwargs": "{'net_arch': [128, 128]}"
+  }
+ }
+}

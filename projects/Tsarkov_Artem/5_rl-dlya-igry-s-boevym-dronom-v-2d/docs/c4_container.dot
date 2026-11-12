@@ -1,0 +1,18 @@
+digraph G {
+graph [rankdir=LR, fontname="DejaVu Sans", fontsize=11, bgcolor=white, pad=0.3, nodesep=0.45, ranksep=0.7, labelloc=t];
+node [shape=box, style="rounded,filled", fontname="DejaVu Sans", fontsize=10, color="#2b4a7a", fillcolor="#dce7f7", margin="0.15,0.08"];
+edge [fontname="DejaVu Sans", fontsize=8, color="#555555"];
+label="C4 Level 2 — Containers: Drone Combat RL";
+u [shape=box, style="rounded,filled", fillcolor="#08427b", fontcolor=white, label="Клиент API"];
+tr [fillcolor="#438dd5", fontcolor=white, label="rl-trainer\n[SB3 PPO, 8 env]"];
+mlf [fillcolor="#e8e8e8", color="#888888", label="MLflow server"];
+mdl [shape=cylinder, fillcolor="#f5e6c8", color="#a07a2a", label="models/\nppo_drone_best.zip"];
+sim [fillcolor="#438dd5", fontcolor=white, label="simulator\n[Gymnasium + Pygame]"];
+t1 [shape=cds, fillcolor="#fde2d4", color="#c0582a", label="drone.telemetry\n(key=episode_id)"];
+t2 [shape=cds, fillcolor="#fde2d4", color="#c0582a", label="drone.episodes"];
+cons [fillcolor="#438dd5", fontcolor=white, label="telemetry-consumer\n[group episode-writer]"];
+pg [shape=cylinder, fillcolor="#f5e6c8", color="#a07a2a", label="PostgreSQL\nepisodes"];
+api [fillcolor="#438dd5", fontcolor=white, label="inference-api\n[FastAPI]"];
+t3 [shape=cds, fillcolor="#fde2d4", color="#c0582a", label="drone.models"];
+tr -> mlf; tr -> mdl; tr -> t3; sim -> mdl [label="load policy"]; sim -> t1; sim -> t2; t2 -> cons; cons -> pg; u -> api; api -> mdl; api -> pg;
+}

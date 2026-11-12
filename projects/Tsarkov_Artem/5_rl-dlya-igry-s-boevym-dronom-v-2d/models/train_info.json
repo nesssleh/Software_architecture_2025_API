@@ -1,0 +1,16 @@
+{
+ "timesteps": 600000,
+ "train_seconds": 239.3,
+ "best_eval_success": 1.0,
+ "hparams": {
+  "learning_rate": "0.0003",
+  "n_steps": "512",
+  "batch_size": "256",
+  "n_epochs": "10",
+  "gamma": "0.99",
+  "gae_lambda": "0.95",
+  "clip_range": "0.2",
+  "ent_coef": "0.01",
+  "policy_kwargs": "{'net_arch': [128, 128]}"
+ }
+}
